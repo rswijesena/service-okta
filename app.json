@@ -1,0 +1,7 @@
+{
+  "name": "Boomi Flow Okta Service",
+  "description": "A plugin that allows your Boomi Flows to integrate with Okta for authentication",
+  "repository": "https://github.com/manywho/service-okta",
+  "logo": "https://s3.amazonaws.com/manywho-service-assets/icons/service-okta.png",
+  "keywords": ["manywho", "boomi", "okta", "authentication", "plugin", "workflow"]
+}
