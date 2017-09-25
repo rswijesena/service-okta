@@ -1,7 +1,7 @@
 package com.boomi.flow.services.okta.authentication;
 
 import com.boomi.flow.services.okta.ApplicationConfiguration;
-import com.boomi.flow.services.okta.oauth2.OktaApi20Factory;
+import com.boomi.flow.services.okta.okta.OktaApi20Factory;
 import com.github.scribejava.core.model.OAuth2AccessToken;
 import com.manywho.sdk.api.security.AuthenticatedWhoResult;
 import com.manywho.sdk.api.security.AuthenticationCredentials;

@@ -27,4 +27,28 @@ public class AuthorizationController extends AbstractAuthorizationController {
     public ObjectDataResponse authorization(ObjectDataRequest objectDataRequest) throws Exception {
         return manager.authorization(authenticatedWhoProvider.get(), objectDataRequest);
     }
+
+    @Path("/group/attribute")
+    @POST
+    public ObjectDataResponse groupAttributes() {
+        return manager.groupAttributes();
+    }
+
+    @Path("/group")
+    @POST
+    public ObjectDataResponse groups(ObjectDataRequest request) {
+        return manager.groups(request);
+    }
+
+    @Path("/user/attribute")
+    @POST
+    public ObjectDataResponse userAttributes() {
+        return manager.userAttributes();
+    }
+
+    @Path("/user")
+    @POST
+    public ObjectDataResponse users(ObjectDataRequest request) {
+        return manager.users(request);
+    }
 }

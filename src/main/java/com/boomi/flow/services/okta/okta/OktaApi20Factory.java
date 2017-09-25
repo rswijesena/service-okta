@@ -1,4 +1,4 @@
-package com.boomi.flow.services.okta.oauth2;
+package com.boomi.flow.services.okta.okta;
 
 import com.boomi.flow.services.okta.ApplicationConfiguration;
 import com.github.scribejava.core.builder.ServiceBuilder;

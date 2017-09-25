@@ -4,6 +4,9 @@ import com.manywho.sdk.api.ContentType;
 import com.manywho.sdk.services.configuration.Configuration;
 
 public class ApplicationConfiguration implements Configuration {
+    @Configuration.Setting(name = "API Key", contentType = ContentType.Password)
+    private String apiKey;
+
     @Configuration.Setting(name = "Client ID", contentType = ContentType.String)
     private String clientId;
 
@@ -15,6 +18,10 @@ public class ApplicationConfiguration implements Configuration {
 
     @Configuration.Setting(name = "Organization URL", contentType = ContentType.String)
     private String organizationUrl;
+
+    public String getApiKey() {
+        return apiKey;
+    }
 
     public String getClientId() {
         return clientId;
