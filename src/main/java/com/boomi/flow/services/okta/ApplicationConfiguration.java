@@ -10,7 +10,7 @@ public class ApplicationConfiguration implements Configuration {
     @Configuration.Setting(name = "Client Secret", contentType = ContentType.Password)
     private String clientSecret;
 
-    @Configuration.Setting(name = "Identity Provider ID", contentType = ContentType.String)
+    @Configuration.Setting(name = "Identity Provider ID", contentType = ContentType.String, required = false)
     private String identityProvider;
 
     @Configuration.Setting(name = "Organization URL", contentType = ContentType.String)
