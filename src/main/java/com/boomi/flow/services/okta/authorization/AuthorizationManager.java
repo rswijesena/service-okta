@@ -1,5 +1,8 @@
 package com.boomi.flow.services.okta.authorization;
 
+import java.util.HashMap;
+import java.util.stream.Collectors;
+
 import com.boomi.flow.services.okta.ApplicationConfiguration;
 import com.boomi.flow.services.okta.okta.OktaApi20Factory;
 import com.boomi.flow.services.okta.okta.OktaClientFactory;
@@ -7,8 +10,10 @@ import com.github.scribejava.core.oauth.OAuth20Service;
 import com.google.common.base.Strings;
 import com.google.inject.Inject;
 import com.manywho.sdk.api.AuthorizationType;
+import com.manywho.sdk.api.run.elements.type.MObject;
 import com.manywho.sdk.api.run.elements.type.ObjectDataRequest;
 import com.manywho.sdk.api.run.elements.type.ObjectDataResponse;
+import com.manywho.sdk.api.run.elements.type.Property;
 import com.manywho.sdk.api.security.AuthenticatedWho;
 import com.manywho.sdk.services.configuration.ConfigurationParser;
 import com.manywho.sdk.services.types.TypeBuilder;
@@ -19,10 +24,8 @@ import com.manywho.sdk.services.types.system.AuthorizationUser;
 import com.manywho.sdk.services.utils.Streams;
 import com.okta.sdk.authc.credentials.TokenClientCredentials;
 import com.okta.sdk.client.Clients;
-import lombok.experimental.var;
 
-import java.util.HashMap;
-import java.util.stream.Collectors;
+import lombok.experimental.var;
 
 public class AuthorizationManager {
     private final ConfigurationParser configurationParser;
@@ -141,13 +144,39 @@ public class AuthorizationManager {
         var client = OktaClientFactory.create(configuration);
 
         // Build the required AuthorizationGroup objects out of the groups that Okta tells us about
-        var groups = Streams.asStream(client.listGroups().iterator())
+        var groups = Streams.asStream(client.listGroups(null, buildFilterStringFromRequest(request), null).iterator())
                 .map(group -> new AuthorizationGroup(group.getId(), group.getProfile().getName(), group.getProfile().getDescription()))
                 .collect(Collectors.toList());
 
         return new ObjectDataResponse(
                 typeBuilder.from(groups)
         );
+    }
+
+    private String buildFilterStringFromRequest(ObjectDataRequest objectDataRequest){
+
+        String filter = "";
+        
+        if (objectDataRequest.getObjectData() != null && objectDataRequest.getObjectData().size() > 0) {
+            for (MObject requestedGroups : objectDataRequest.getObjectData()) {
+                if (requestedGroups.getDeveloperName().equals("GroupAuthorizationGroup")) {
+
+                    String idToSearch = requestedGroups.getProperties().stream()
+                            .filter(property -> property.getDeveloperName().equals("AuthenticationId"))
+                            .findFirst()
+                            .orElse(new Property("AuthenticationId", ""))
+                            .getContentValue();
+                    
+                    if(filter != ""){
+                        filter += " or ";
+                    }
+                    
+                    filter += "id eq \"" + idToSearch + "\"";
+                }
+            }
+        }
+        
+        return filter;
     }
 
     public ObjectDataResponse userAttributes() {
