@@ -144,7 +144,7 @@ public class AuthorizationManager {
         var client = OktaClientFactory.create(configuration);
 
         // Build the required AuthorizationGroup objects out of the groups that Okta tells us about
-        var groups = Streams.asStream(client.listGroups(null, buildFilterStringFromRequest(request), null).iterator())
+        var groups = Streams.asStream(client.listGroups(null, buildFilterStringFromRequest(request, "GroupAuthorizationGroup", "AuthenticationId"), null).iterator())
                 .map(group -> new AuthorizationGroup(group.getId(), group.getProfile().getName(), group.getProfile().getDescription()))
                 .collect(Collectors.toList());
 
@@ -153,18 +153,18 @@ public class AuthorizationManager {
         );
     }
 
-    private String buildFilterStringFromRequest(ObjectDataRequest objectDataRequest){
+    private String buildFilterStringFromRequest(ObjectDataRequest objectDataRequest, String name, String propertyName){
 
         String filter = "";
         
         if (objectDataRequest.getObjectData() != null && objectDataRequest.getObjectData().size() > 0) {
             for (MObject requestedGroups : objectDataRequest.getObjectData()) {
-                if (requestedGroups.getDeveloperName().equals("GroupAuthorizationGroup")) {
+                if (requestedGroups.getDeveloperName().equals(name)) {
 
                     String idToSearch = requestedGroups.getProperties().stream()
-                            .filter(property -> property.getDeveloperName().equals("AuthenticationId"))
+                            .filter(property -> property.getDeveloperName().equals(propertyName))
                             .findFirst()
-                            .orElse(new Property("AuthenticationId", ""))
+                            .orElse(new Property(propertyName, ""))
                             .getContentValue();
                     
                     if(filter != ""){
@@ -191,7 +191,7 @@ public class AuthorizationManager {
         var client = OktaClientFactory.create(configuration);
 
         // Build the required AuthorizationUser objects out of the users that Okta tells us about
-        var users = Streams.asStream(client.listUsers().iterator())
+        var users = Streams.asStream(client.listUsers(null, buildFilterStringFromRequest(request, "GroupAuthorizationUser", "AuthenticationId"), null, null, null).iterator())
                 .map(user -> new AuthorizationUser(
                         user.getId(),
                         String.format("%s %s", user.getProfile().getFirstName(), user.getProfile().getLastName()),
