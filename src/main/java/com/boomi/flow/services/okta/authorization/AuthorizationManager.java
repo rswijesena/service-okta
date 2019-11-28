@@ -158,10 +158,10 @@ public class AuthorizationManager {
         String filter = "";
         
         if (objectDataRequest.getObjectData() != null && objectDataRequest.getObjectData().size() > 0) {
-            for (MObject requestedGroups : objectDataRequest.getObjectData()) {
-                if (requestedGroups.getDeveloperName().equals(name)) {
+            for (MObject requestedGroup : objectDataRequest.getObjectData()) {
+                if (requestedGroup.getDeveloperName().equals(name)) {
 
-                    String idToSearch = requestedGroups.getProperties().stream()
+                    String idToSearch = requestedGroup.getProperties().stream()
                             .filter(property -> property.getDeveloperName().equals(propertyName))
                             .findFirst()
                             .orElse(new Property(propertyName, ""))

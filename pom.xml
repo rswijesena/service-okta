@@ -11,7 +11,7 @@
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <version.okta>1.0.0</version.okta>
+        <version.okta>1.5.4</version.okta>
     </properties>
 
     <dependencies>
