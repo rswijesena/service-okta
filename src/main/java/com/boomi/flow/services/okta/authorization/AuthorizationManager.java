@@ -1,8 +1,5 @@
 package com.boomi.flow.services.okta.authorization;
 
-import java.util.HashMap;
-import java.util.stream.Collectors;
-
 import com.boomi.flow.services.okta.ApplicationConfiguration;
 import com.boomi.flow.services.okta.okta.OktaApi20Factory;
 import com.boomi.flow.services.okta.okta.OktaClientFactory;
@@ -10,6 +7,7 @@ import com.github.scribejava.core.oauth.OAuth20Service;
 import com.google.common.base.Strings;
 import com.google.inject.Inject;
 import com.manywho.sdk.api.AuthorizationType;
+import com.manywho.sdk.api.run.elements.config.Group;
 import com.manywho.sdk.api.run.elements.type.MObject;
 import com.manywho.sdk.api.run.elements.type.ObjectDataRequest;
 import com.manywho.sdk.api.run.elements.type.ObjectDataResponse;
@@ -23,9 +21,14 @@ import com.manywho.sdk.services.types.system.AuthorizationGroup;
 import com.manywho.sdk.services.types.system.AuthorizationUser;
 import com.manywho.sdk.services.utils.Streams;
 import com.okta.sdk.authc.credentials.TokenClientCredentials;
+import com.okta.sdk.client.Client;
 import com.okta.sdk.client.Clients;
+import com.okta.sdk.resource.user.User;
 
-import lombok.experimental.var;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class AuthorizationManager {
     private final ConfigurationParser configurationParser;
@@ -40,7 +43,7 @@ public class AuthorizationManager {
     public ObjectDataResponse authorization(AuthenticatedWho authenticatedWho, ObjectDataRequest request) {
         ApplicationConfiguration configuration = configurationParser.from(request);
 
-        var client = Clients.builder()
+        Client client = Clients.builder()
                 .setClientCredentials(new TokenClientCredentials(configuration.getApiKey()))
                 .setOrgUrl("https://" + configuration.getOrganizationUrl())
                 .build();
@@ -66,7 +69,7 @@ public class AuthorizationManager {
                     break;
                 }
 
-                var user = client.getUser(authenticatedWho.getUserId());
+                User user = client.getUser(authenticatedWho.getUserId());
                 if (user == null) {
                     status = "401";
                     break;
@@ -74,7 +77,7 @@ public class AuthorizationManager {
 
                 // We need to check if the authenticated user is one of the authorized users by ID
                 if (request.getAuthorization().hasUsers()) {
-                    var isAuthorized = request.getAuthorization().getUsers().stream()
+                    boolean isAuthorized = request.getAuthorization().getUsers().stream()
                             .anyMatch(u -> u.getAuthenticationId().equals(user.getId()));
 
                     if (isAuthorized) {
@@ -94,9 +97,9 @@ public class AuthorizationManager {
                         break;
                     }
 
-                    var authorizedGroups = request.getAuthorization().getGroups();
+                    List<Group> authorizedGroups = request.getAuthorization().getGroups();
 
-                    var isAuthorized = Streams.asStream(user.listGroups())
+                    boolean isAuthorized = Streams.asStream(user.listGroups())
                             .anyMatch(group -> authorizedGroups.stream().anyMatch(g -> g.getAuthenticationId().equals(group.getId())));
 
                     if (isAuthorized) {
@@ -114,14 +117,14 @@ public class AuthorizationManager {
 
         OAuth20Service service = OktaApi20Factory.create(configuration);
 
-        var additionalParameters = new HashMap<String, String>();
+        Map<String, String> additionalParameters = new HashMap<String, String>();
 
         // If we're given an identity provider ID, we set that as the provider to log into
         if (Strings.isNullOrEmpty(configuration.getIdentityProvider()) == false) {
             additionalParameters.put("idp", configuration.getIdentityProvider());
         }
 
-        var user = new $User();
+        $User user = new $User();
         user.setDirectoryId("Okta");
         user.setDirectoryName("Okta");
         user.setAuthenticationType(AuthorizationType.Oauth2);
@@ -141,10 +144,10 @@ public class AuthorizationManager {
     public ObjectDataResponse groups(ObjectDataRequest request) {
         ApplicationConfiguration configuration = configurationParser.from(request);
 
-        var client = OktaClientFactory.create(configuration);
+        Client client = OktaClientFactory.create(configuration);
 
         // Build the required AuthorizationGroup objects out of the groups that Okta tells us about
-        var groups = Streams.asStream(client.listGroups(null, buildFilterStringFromRequest(request, "GroupAuthorizationGroup", "AuthenticationId"), null).iterator())
+        List<AuthorizationGroup> groups = Streams.asStream(client.listGroups(null, buildFilterStringFromRequest(request, "GroupAuthorizationGroup", "AuthenticationId"), null).iterator())
                 .map(group -> new AuthorizationGroup(group.getId(), group.getProfile().getName(), group.getProfile().getDescription()))
                 .collect(Collectors.toList());
 
@@ -156,7 +159,7 @@ public class AuthorizationManager {
     private String buildFilterStringFromRequest(ObjectDataRequest objectDataRequest, String name, String propertyName){
 
         String filter = "";
-        
+
         if (objectDataRequest.getObjectData() != null && objectDataRequest.getObjectData().size() > 0) {
             for (MObject requestedGroup : objectDataRequest.getObjectData()) {
                 if (requestedGroup.getDeveloperName().equals(name)) {
@@ -166,16 +169,16 @@ public class AuthorizationManager {
                             .findFirst()
                             .orElse(new Property(propertyName, ""))
                             .getContentValue();
-                    
+
                     if(filter != ""){
                         filter += " or ";
                     }
-                    
+
                     filter += "id eq \"" + idToSearch + "\"";
                 }
             }
         }
-        
+
         return filter;
     }
 
@@ -188,10 +191,10 @@ public class AuthorizationManager {
     public ObjectDataResponse users(ObjectDataRequest request) {
         ApplicationConfiguration configuration = configurationParser.from(request);
 
-        var client = OktaClientFactory.create(configuration);
+        Client client = OktaClientFactory.create(configuration);
 
         // Build the required AuthorizationUser objects out of the users that Okta tells us about
-        var users = Streams.asStream(client.listUsers(null, buildFilterStringFromRequest(request, "GroupAuthorizationUser", "AuthenticationId"), null, null, null).iterator())
+        List<AuthorizationUser> users = Streams.asStream(client.listUsers(null, buildFilterStringFromRequest(request, "GroupAuthorizationUser", "AuthenticationId"), null, null, null).iterator())
                 .map(user -> new AuthorizationUser(
                         user.getId(),
                         String.format("%s %s", user.getProfile().getFirstName(), user.getProfile().getLastName()),

@@ -9,8 +9,7 @@ import com.manywho.sdk.api.run.elements.config.ServiceRequest;
 import com.manywho.sdk.api.security.AuthenticatedWho;
 import com.manywho.sdk.services.actions.ActionCommand;
 import com.manywho.sdk.services.actions.ActionResponse;
-import lombok.experimental.var;
-import lombok.val;
+import com.okta.sdk.resource.application.AppUser;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -25,12 +24,12 @@ public class GetApplicationUsernameCommand implements ActionCommand<ApplicationC
 
     @Override
     public ActionResponse<Output> execute(ApplicationConfiguration configuration, ServiceRequest serviceRequest, Input input) {
-        var user = input.getUser();
+        String user = input.getUser();
         if (Strings.isNullOrEmpty(user)) {
             user = authenticatedWho.getUserId();
         }
 
-        val applicationUser = OktaClientFactory.create(configuration)
+        AppUser applicationUser = OktaClientFactory.create(configuration)
                 .getApplication(input.getApplication())
                 .getApplicationUser(user);
 
