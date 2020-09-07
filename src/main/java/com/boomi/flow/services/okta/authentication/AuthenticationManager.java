@@ -30,7 +30,7 @@ public class AuthenticationManager {
 
         try {
             // Request an access token from Okta using the given authorization code
-            token = OktaApi20Factory.create(configuration)
+            token = OktaApi20Factory.createTokenFactory(configuration)
                         .getAccessToken(credentials.getCode());
         } catch (IOException | InterruptedException | ExecutionException e) {
             throw new RuntimeException("Unable to get the access token from Okta: " + e.getMessage(), e);
@@ -44,7 +44,7 @@ public class AuthenticationManager {
 
         try {
             // Request the user's profile from Okta
-            response = Unirest.post(String.format("https://%s/oauth2/v1/userinfo", configuration.getOrganizationUrl()))
+            response = Unirest.post(String.format("https://%s/userinfo", configuration.getOrganizationUrl()))
                     .header("Authorization", "Bearer " + token.getAccessToken())
                     .asJson();
         } catch (UnirestException e) {

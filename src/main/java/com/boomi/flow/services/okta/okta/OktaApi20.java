@@ -11,11 +11,11 @@ public class OktaApi20 extends DefaultApi20 {
 
     @Override
     public String getAccessTokenEndpoint() {
-        return String.format("https://%s/oauth2/v1/token", organization);
+        return String.format("https://%s/oauth/token", organization);
     }
 
     @Override
     protected String getAuthorizationBaseUrl() {
-        return String.format("https://%s/oauth2/v1/authorize", organization);
+        return String.format("https://%s/authorize", organization);
     }
 }
